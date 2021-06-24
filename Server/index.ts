@@ -8,11 +8,13 @@ async function main()
 {
   const server = await startServer();
 
-  const messageLen = 0;
+  const messageLen = 0;   // Tweak this to get a different stack trace when it crashes.
+                          // It'll still crash either way, but a message length
+                          // of zero will give us the same results we were seeing
+                          // in the lab.
   const pingData = Buffer.alloc(messageLen);
   pingData.fill('a', 0, messageLen);
 
-  console.log('built the big ping message');
   while (true)
   {
     await delayAsync(1);
@@ -32,32 +34,6 @@ function pingAll(data: Buffer)
   wsConnections.forEach(conn => {
     conn.ping(data);
   });
-}
-
-function pongAll(data: Buffer)
-{
-  wsConnections.forEach(conn => {
-    conn.pong(data);
-  });
-}
-
-function readLineAsync(): Promise<string>
-{
-  const readLineInterface = readline.createInterface(
-    {
-      input: process.stdin,
-      output: process.stdout
-    }
-  );
-
-  return new Promise<string>((resolve, reject) =>
-  {
-    readLineInterface.question('Enter ping data', (answer) =>
-    {
-      readLineInterface.close();
-      resolve(answer);
-    });
-  })
 }
 
 function startServer(): Promise<WebSocket.server>
@@ -85,13 +61,6 @@ function startServer(): Promise<WebSocket.server>
       wsConnections.delete(connection);
     });
 
-    // Respond to all messages with "hello".
-    connection.on('message', req =>
-    {
-      console.log(`Server received ${req.utf8Data}`);
-      connection.sendUTF('Hello');
-    });
-
     // Count the number of pongs.
     let pongCount = 0;
     connection.on('pong', req =>
@@ -109,27 +78,4 @@ function startServer(): Promise<WebSocket.server>
       resolve(wsServer);
     });
   });
-}
-
-function startClient(url: string) : Promise<WebSocket.connection>
-{
-  return new Promise((resolve, reject) =>
-  {
-    console.log(`Connecting to ${url}`);
-
-    const client = new WebSocket.client();
-    client.on('connectFailed', err => console.log('Test client connection error: ' + err));
-    client.on('connect', connection =>
-    {
-      console.log('Client received connection');
-      connection.on('message', msg =>
-      {
-        console.log(`Client received ${msg.utf8Data}`);
-      });
-      resolve(connection);
-    });
-
-    console.log('about to connect client');
-    client.connect(url, 'echo-protocol');
-  })
 }
