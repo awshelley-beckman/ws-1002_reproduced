@@ -1,0 +1,14 @@
+{
+  "name": "Server",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/websocket": "^1.0.2",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {
+    "websocket": "^1.0.34"
+  }
+}
