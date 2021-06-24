@@ -10,14 +10,11 @@ namespace Client
     {
         static async Task Main(string[] args)
         {
-            var logger = new ConsoleLogger(
-                "Log my stuff",
-                new IndentableWriter("  "),
-                LogLevel.Debug
-            );
-
             string url = "ws://localhost:22475/";
             var websocket = new ClientWebSocket();
+
+            // Make it send a keepalive ping every millisecond, to speed up
+            // the process.
             websocket.Options.KeepAliveInterval = TimeSpan.FromMilliseconds(1);
 
             await websocket.ConnectAsync(new Uri(url), default);
@@ -25,35 +22,9 @@ namespace Client
             // Continuously consume ReadAsync to make it process the ping getting
             // sent by the server
             var receiveBuffer = new byte[1];
-            // try
-            // {
-                while (true)
-                    await websocket.ReceiveAsync(receiveBuffer, default);
-            // }
-            // catch (Exception e)
-            // {
-            //     // // Log the exception the same way CloudSync would.
-            //     // // Does it cut that last bit of the stack trace off?
-            //     // logger.LogError(e, "msg");
-            // }
+            while (true)
+                await websocket.ReceiveAsync(receiveBuffer, default);
 
-            // while (true)
-            // {
-            //     var a = Task.Run(() => SendText(websocket, "aaaaaaaaaaaaaaa"));
-            //     var b = Task.Run(() => SendText(websocket, "bbbbbbbbbbbb"));
-            //     await Task.WhenAll(a, b);
-            // }
-        }
-
-        static async Task SendText(ClientWebSocket webSocket, string message)
-        {
-            var sendBuffer = Encoding.ASCII.GetBytes(message);
-            await webSocket.SendAsync(
-                sendBuffer,
-                ((byte)WebSocketMessageType.Text),
-                true,
-                default
-            );
         }
     }
 }
